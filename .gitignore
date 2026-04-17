@@ -1,0 +1,7 @@
+.DS_Store
+__pycache__/
+.ipynb_checkpoints/
+distributciones.png
+morphology_boxplots.png
+culmen_scatter.png
+analisis comparativo.png
