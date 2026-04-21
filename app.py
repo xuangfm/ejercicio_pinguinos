@@ -24,24 +24,26 @@ st.sidebar.header("Filtros")
 
 species = st.sidebar.multiselect(
     "Selecciona especie:",
-    options=df["species"].unique(),
-    default=df["species"].unique()
+    options=sorted(df["species"].dropna().unique()),
+    default=sorted(df["species"].dropna().unique())
 )
 
 island = st.sidebar.multiselect(
     "Selecciona isla:",
-    options=df["island"].unique(),
-    default=df["island"].unique()
+    options=sorted(df["island"].dropna().unique()),
+    default=sorted(df["island"].dropna().unique())
 )
+
 sex = st.sidebar.multiselect(
     "Selecciona sexo:",
-    options=df["sex"].unique(),
-    default=df["sex"].unique()
+    options=sorted(df["sex"].dropna().unique()),
+    default=sorted(df["sex"].dropna().unique())
 )
+
 Nido = st.sidebar.multiselect(
     "Selecciona eclosión de nidos:",
-    options=df["clutch_completion"].unique(),
-    default=df["clutch_completion"].unique()
+    options=sorted(df["clutch_completion"].dropna().unique()),
+    default=sorted(df["clutch_completion"].dropna().unique())
 )
 
 # -------------------------
