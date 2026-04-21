@@ -49,7 +49,9 @@ Nido = st.sidebar.multiselect(
 # -------------------------
 filtered_df = df[
     (df["species"].isin(species)) &
-    (df["island"].isin(island))
+    (df["island"].isin(island)) &
+    (df["sex"].isin(sex)) &
+    (df["clutch_completion"].isin(Nido))
 ]
 
 # -------------------------
@@ -66,26 +68,56 @@ fig = px.pie(
     counts,
     names="species",
     values="count",
-    title="Especies obse"
+    title="Especies observadas"
 )
-st.plotly_chart(fig)
+st.plotly_chart(fig, use_container_width=True)
 
 
-st.write("### Distribución de masa corporal")
-st.bar_chart(filtered_df["body_mass_(g)"])
+mass_by_species = (
+    filtered_df
+    .groupby("species")["body_mass_(g)"]
+    .mean()
+    .reset_index()
+)
 
-st.write("### Longitud del pico vs profundidad")
-st.scatter_chart(
+fig = px.bar(
+    mass_by_species,
+    x="species",
+    y="body_mass_(g)",
+    color="species",
+    title="Masa corporal promedio por especie",
+    labels={"body_mass_(g)": "Masa corporal (g)"}
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
+fig = px.scatter(
     filtered_df,
     x="culmen_length_(mm)",
-    y="culmen_depth_(mm)"
+    y="culmen_depth_(mm)",
+    color="species",
+    title="Relación longitud vs profundidad del pico",
+    labels={
+        "culmen_length_(mm)": "Longitud (mm)",
+        "culmen_depth_(mm)": "Profundidad (mm)"
+    }
 )
 
-st.write("### Distribución por eclosión de nidos")
-st.bar_chart(
-    filtered_df["clutch_completion"].value_counts(),
-    use_container_width=True
+st.plotly_chart(fig, use_container_width=True)
+
+clutch_counts = filtered_df["clutch_completion"].value_counts().reset_index()
+clutch_counts.columns = ["clutch_completion", "count"]
+
+fig = px.bar(
+    clutch_counts,
+    x="clutch_completion",
+    y="count",
+    color="clutch_completion",
+    title="Distribución de eclosión de nidos"
 )
+
+st.plotly_chart(fig, use_container_width=True)
+
     
 # -------------------------
 # 📌 INFO EXTRA
