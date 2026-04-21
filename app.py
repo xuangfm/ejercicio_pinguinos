@@ -66,7 +66,7 @@ fig = px.pie(
     counts,
     names="species",
     values="count",
-    title="Distribución de especies"
+    title="Especies observadas"
 )
 
 
