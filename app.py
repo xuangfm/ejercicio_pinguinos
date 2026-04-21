@@ -66,12 +66,9 @@ fig = px.pie(
     counts,
     names="species",
     values="count",
-    title="Especies observadas"
+    title="Especies obse"
 )
-
-
 st.plotly_chart(fig)
-
 
 
 st.write("### Distribución de masa corporal")
