@@ -81,6 +81,57 @@ with tab1:
     st.subheader("Exploración de la tabla")
     st.write(f"Mostrando {filtered_df.shape[0]} registros")
     st.dataframe(filtered_df, use_container_width=True)
+    st.divider()
+    st.markdown("### Conteo preliminar básico")
+    st.markdown("""
+    <style>
+    .divider {
+        border-left: 2px solid #fff;
+        height: 100%;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    col1, divider, col2 = st.columns([1, 0.1, 1])
+    
+    with col1:
+        # Pie chart de especies
+        counts = filtered_df["species"].value_counts().reset_index()
+        fig_pie = px.pie(counts, names="species", values="count", title="Especies observadas")
+        st.plotly_chart(fig_pie, use_container_width=True)
+   
+    with col2:
+        # histograma de especies por islas
+        fig_hist = px.histogram(filtered_df, x="island", color="species", title="Distribución por Isla")
+        st.plotly_chart(fig_hist, use_container_width=True)
+    #---
+    st.divider()
+
+    st.markdown("### Observación de anidado por especie")
+    clutch_counts = (
+    filtered_df
+    .groupby(["species", "clutch_completion"])
+    .size()
+    .reset_index(name="count")
+    )
+
+# Calcular proporciones correctamente
+    
+    clutch_counts["proportion"] = (
+    clutch_counts["count"] /
+    clutch_counts.groupby("species")["count"].transform("sum")
+
+    )
+
+    fig = px.bar(
+    clutch_counts,
+    x="clutch_completion",
+    y="proportion",
+    color="species",
+    barmode="group",
+    title="Proporción de exito"
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
 # --- TAB 2: ANÁLISIS UNIVARIADO (Seaborn/Matplotlib) ---
 with tab2:
@@ -107,9 +158,8 @@ with tab2:
         horizontal=True
     )
 
-    # -------------------------
     # 📊 GRÁFICO PRINCIPAL (GRANDE)
-    # -------------------------
+  
     fig, ax = plt.subplots(figsize=(10, 6))
 
     if chart_type == "Histograma":
@@ -138,9 +188,9 @@ with tab2:
 
     st.pyplot(fig)
 
-    # -------------------------
+    
     # 📌 ESTADÍSTICAS CLAVE
-    # -------------------------
+    
     st.markdown("### 📊 Resumen estadístico")
 
     col1, col2, col3 = st.columns(3)
@@ -149,8 +199,11 @@ with tab2:
     col2.metric("Mediana", round(filtered_df[variable].median(), 2))
     col3.metric("Desv. estándar", round(filtered_df[variable].std(), 2))
     
-    st.divider()
     
+    st.divider()
+    #---
+    # Distribución analisis univariado por cada especie
+    #---
     st.markdown("### Distribución por especie")
 
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -162,32 +215,21 @@ with tab2:
             alpha=0.4,
             ax=ax
     )
-
+    
     ax.set_title(f"Densidad de {variable} por especie")
     st.pyplot(fig)
 
+    #---
 
-    #---
     max_value = filtered_df[variable].max()
-    st.info(f"El valor máximo observado en {variable} es {round(max_value, 2)}")
-    #---
+    min_value = filtered_df[variable].min()
+    st.info(f"El valor máximo observado en {variable} es de {round(max_value, 2)}, y el mínimo es {round(min_value, 2)}")
+
 
 # --- TAB 3: GRÁFICOS INTERACTIVOS (Plotly) ---
 with tab3:
     st.subheader("Relaciones y proporciones")
    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        # Pie chart de especies
-        counts = filtered_df["species"].value_counts().reset_index()
-        fig_pie = px.pie(counts, names="species", values="count", title="Especies observadas")
-        st.plotly_chart(fig_pie, use_container_width=True)
-    
-    with col2:
-        # histograma de especies por islas
-        fig_hist = px.histogram(filtered_df, x="island", color="species", title="Distribución por Isla")
-        st.plotly_chart(fig_hist, use_container_width=True)
     
     # Grafico de masa por especie
     st.divider()
