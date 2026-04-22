@@ -17,6 +17,14 @@ df = load_data(url)
 counts = df["species"].value_counts().reset_index()
 counts.columns = ["species", "count"]
 
+df_ui = df.copy()
+
+# -------------------------
+# Crear columnas para valores faltantes
+# -------------------------
+df_ui["sex_ui"] = df["sex"].fillna("Desconocido")
+df_ui["clutch_ui"] = df["clutch_completion"].fillna("Desconocido")
+
 # -------------------------
 # 🎛️ FILTROS (SIDEBAR)
 # -------------------------
@@ -34,16 +42,17 @@ island = st.sidebar.multiselect(
     default=sorted(df["island"].dropna().unique())
 )
 
+
 sex = st.sidebar.multiselect(
     "Selecciona sexo:",
-    options=sorted(df["sex"].dropna().unique()),
-    default=sorted(df["sex"].dropna().unique())
+    options=sorted(df_ui["sex_ui"].unique()),
+    default=sorted(df_ui["sex_ui"].unique())
 )
 
-Nido = st.sidebar.multiselect(
+nido = st.sidebar.multiselect(
     "Selecciona eclosión de nidos:",
-    options=sorted(df["clutch_completion"].dropna().unique()),
-    default=sorted(df["clutch_completion"].dropna().unique())
+    options=sorted(df_ui["clutch_ui"].unique()),
+    default=sorted(df_ui["clutch_ui"].unique())
 )
 
 # -------------------------
@@ -53,8 +62,16 @@ filtered_df = df[
     (df["species"].isin(species)) &
     (df["island"].isin(island)) &
     (df["sex"].isin(sex)) &
-    (df["clutch_completion"].isin(Nido))
+    (df["clutch_completion"].isin(nido))
 ]
+mask = (
+    df_ui["species"].isin(species) &
+    df_ui["island"].isin(island) &
+    df_ui["sex_ui"].isin(sex) &
+    df_ui["clutch_ui"].isin(nido)
+)
+
+filtered_df = df[mask]  # 👈 importante: vuelves al DF original
 
 # -------------------------
 # 📊 VISUALIZACIÓN
@@ -74,7 +91,7 @@ fig = px.pie(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-
+#  Barra de peso promedio por especie
 mass_by_species = (
     filtered_df
     .groupby("species")["body_mass_(g)"]
@@ -93,6 +110,7 @@ fig = px.bar(
 
 st.plotly_chart(fig, use_container_width=True)
 
+# scatter plot sobre el pico
 fig = px.scatter(
     filtered_df,
     x="culmen_length_(mm)",
@@ -107,6 +125,7 @@ fig = px.scatter(
 
 st.plotly_chart(fig, use_container_width=True)
 
+# distribución de eclosión de nidos
 clutch_counts = filtered_df["clutch_completion"].value_counts().reset_index()
 clutch_counts.columns = ["clutch_completion", "count"]
 
