@@ -16,7 +16,8 @@ def load_data(url):
     return pd.read_csv(url)
 
 df = load_data(url)
-
+counts = df["species"].value_counts().reset_index()
+counts.columns = ["species", "count"]
 # -------------------------
 # Preparación de datos UI
 # -------------------------
@@ -29,31 +30,46 @@ df_ui["clutch_ui"] = df["clutch_completion"].fillna("Desconocido")
 # -------------------------
 st.sidebar.header("Filtros Globales")
 
-species_sel = st.sidebar.multiselect(
+species = st.sidebar.multiselect(
     "Selecciona especie:",
     options=sorted(df["species"].unique()),
     default=sorted(df["species"].unique())
 )
 
-island_sel = st.sidebar.multiselect(
+island = st.sidebar.multiselect(
     "Selecciona isla:",
     options=sorted(df["island"].unique()),
     default=sorted(df["island"].unique())
 )
 
-sex_sel = st.sidebar.multiselect(
+sex = st.sidebar.multiselect(
     "Selecciona sexo:",
     options=sorted(df_ui["sex_ui"].unique()),
     default=sorted(df_ui["sex_ui"].unique())
 )
-
-# Aplicar filtros
-mask = (
-    df_ui["species"].isin(species_sel) &
-    df_ui["island"].isin(island_sel) &
-    df_ui["sex_ui"].isin(sex_sel)
+nido = st.sidebar.multiselect(
+    "Selecciona eclosión de nidos:",
+    options=sorted(df_ui["clutch_ui"].unique()),
+    default=sorted(df_ui["clutch_ui"].unique())
 )
-filtered_df = df[mask]
+
+# -------------------------
+# 🔍 FILTRADO
+# -------------------------
+filtered_df = df[
+    (df["species"].isin(species)) &
+    (df["island"].isin(island)) &
+    (df["sex"].isin(sex)) &
+    (df["clutch_completion"].isin(nido))
+]
+mask = (
+    df_ui["species"].isin(species) &
+    df_ui["island"].isin(island) &
+    df_ui["sex_ui"].isin(sex) &
+    df_ui["clutch_ui"].isin(nido)
+)
+
+filtered_df = df[mask]  # 👈 importante: vuelves al DF original
 
 # -------------------------
 # 📊 ESTRUCTURA DE PESTAÑAS
@@ -108,18 +124,48 @@ with tab3:
         st.plotly_chart(fig_pie, use_container_width=True)
 
     with col2:
-        # Scatter plot
-        fig_scatter = px.scatter(
+        # histograma de especies por islas
+        fig_hist = px.histogram(filtered_df, x="island", color="species", title="Distribución por Isla")
+        st.plotly_chart(fig_hist, use_container_width=True)
+    
+    # Barra de peso
+    mass_by_species = (
+        filtered_df
+        .groupby("species")["body_mass_(g)"]
+        .agg(["mean", "std"])
+        .reset_index()
+    )
+    mass_by_species = mass_by_species.sort_values(by="mean", ascending=False)
+    
+# Crear gráfico con barras de error
+fig = px.bar(
+    mass_by_species,
+    x="species",
+    y="mean",
+    color="species",
+    error_y="std",  # 🔥 aquí está la clave
+    title="Masa corporal promedio por especie (± desviación estándar)",
+    labels={
+        "mean": "Masa corporal (g)",
+        "species": "Especie"
+    }
+)
+
+st.plotly_chart(fig, use_container_width=True)
+# Scatter plot
+fig_scatter = px.scatter(
             filtered_df, 
             x="culmen_length_(mm)", 
             y="culmen_depth_(mm)", 
             color="species",
-            title="Longitud vs Profundidad del Pico"
+            title="Longitud vs Profundidad del Pico",
+            labels={
+                "culmen_length_(mm)": "Longitud (mm)",
+                "culmen_depth_(mm)": "Profundidad (mm)"
+            }
         )
-        st.plotly_chart(fig_scatter, use_container_width=True)
+st.plotly_chart(fig_scatter, use_container_width=True)
     
-    # Barra de peso
-    mass_by_species = filtered_df.groupby("species")["body_mass_(g)"].mean().reset_index()
-    fig_bar = px.bar(mass_by_species, x="species", y="body_mass_(g)", color="species", 
-                     title="Masa corporal promedio (g)")
-    st.plotly_chart(fig_bar, use_container_width=True)
+
+
+
