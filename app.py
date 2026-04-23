@@ -3,8 +3,58 @@ import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
 import seaborn as sns
+# -------------------------
+# 1. CONFIGURACIÓN Y ESTILOS
+# -------------------------
+st.set_page_config(page_title="Pingüinos Bio-polares", layout="wide", page_icon="🐧")
+
+# Inserción de estilos de app_estilo.py
+st.markdown("""
+<style>
+    .stApp {
+        background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
+                    url("https://images.pexels.com/photos/533856/pexels-photo-533856.jpeg");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    section[data-testid="stSidebar"] {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(15px);
+    }
+            
+
+    /* Estilo para tarjetas de métricas, tabla y Gráficos Univariados (Transparentes) */
+    .stMatplotlibChart, div[data-testid="stDataFrame"], div[data-testid="stMetric"] {
+        background-color: rgba(255, 255, 255, 0,15) !important; 
+        padding: 10px;
+        border-radius: 12px;
+        backdrop-filter: blur(8px);
+        border: 5px backdrop-filter rgba(255, 255, 255, 255);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    /* Estilo para Gráficos Bivariados (Blanco + Sombra Pronunciada) */
+    div[data-testid="stPlotlyChart"] {
+        background-color: rgba(255, 255, 255, 255) !important;
+        padding: 5px;
+        border-radius: 10px;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45), 0 8px 10px rgba(0, 0, 0, 0.22) !important;
+    }
+            
+    h1, h2, h3, p, label, .stMarkdown {
+        color: white !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    }
+</style>
+""", unsafe_allow_html=True)
 
 st.set_page_config(page_title="Penguins", layout="wide")
+
+# -------------------------
+# 2. CARGA DE DATOS (Original)
+# -------------------------
 
 st.title("🐧 Los Pingüinos Bio-polares")
 st.markdown("## Investigación y exploración interactiva de los datos del equipo II")
@@ -86,7 +136,7 @@ with tab1:
     st.markdown("""
     <style>
     .divider {
-        border-left: 2px solid #fff;
+        border-left: 2px solid #000;
         height: 100%;
     }
     </style>
@@ -152,46 +202,28 @@ with tab1:
         title="Existe paridad de genero")
     st.plotly_chart(fig, use_container_width=True)
 
-#recuento automatico
-    st.markdown("### 🧠 Resumen de hallazgos")
+    st.markdown("##### Hallazgos por genero")
+    sex_counts = filtered_df.groupby(["species", "sex"]).size().reset_index(name="count")
 
-# Conteo coherente con el histograma
-sex_counts = (
-    filtered_df
-    .groupby(["species", "sex"])
-    .size()
-    .reset_index(name="count")
-)
+    for especie in sex_counts["species"].unique():
+        subset = sex_counts[sex_counts["species"] == especie]
+        total = subset["count"].sum()
+        if total == 0: continue
+        
+        subset = subset.copy()
+        subset["prop"] = subset["count"] / total
+        max_count = subset["count"].max()
+        top = subset[subset["count"] == max_count]
 
-for especie in sex_counts["species"].unique():
-    subset = sex_counts[sex_counts["species"] == especie]
-    
-    total = subset["count"].sum()
-    
-    if total == 0:
-        continue
-    
-    # Detectar si hay NaN (por si usas "Desconocido")
-    subset = subset.copy()
-    subset["prop"] = subset["count"] / total
+        if len(top) > 1:
+            st.write(f"En la especie **{especie}** no hay un género predominante.")
+        else:
+            row = top.iloc[0]
+            porcentaje = round(row["prop"] * 100, 1)
+            st.write(f"En la especie **{especie}**, predomina el género **{row['sex']}** con un {porcentaje}% de los individuos.")
+            if porcentaje < 60:
+                st.write(f"En la especie **{especie}**, la distribución de género es bastante equilibrada.")
 
-    # Caso empate
-    max_count = subset["count"].max()
-    top = subset[subset["count"] == max_count]
-
-    if len(top) > 1:
-        st.write(f"En la especie **{especie}** no hay un género predominante.")
-    else:
-        row = top.iloc[0]
-        porcentaje = round(row["prop"] * 100, 1)
-
-        st.write(
-            f"En la especie **{especie}**, predomina el género **{row['sex']}** "
-            f"con un {porcentaje}% de los individuos."
-        )
-    if len(top) == 1 and porcentaje < 60:
-        st.write(f"En la especie **{especie}**, la distribución de género es bastante equilibrada."
-)
 
 
 
@@ -320,7 +352,3 @@ with tab3:
             }
         )
     st.plotly_chart(fig_scatter, use_container_width=True)
-    
-
-
-
