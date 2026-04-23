@@ -104,9 +104,15 @@ with tab1:
         # histograma de especies por islas
         fig_hist = px.histogram(filtered_df, x="island", color="species", title="Distribución por Isla")
         st.plotly_chart(fig_hist, use_container_width=True)
-    #---
-    st.divider()
 
+    st.markdown("##### 342 observaciones")
+    st.dataframe(counts, use_container_width = True, hide_index=True)
+    
+    
+    st.divider()
+    #-----------
+    # grafico de anidado
+    #-----------
     st.markdown("### Observación de anidado por especie")
     clutch_counts = (
     filtered_df
@@ -115,7 +121,7 @@ with tab1:
     .reset_index(name="count")
     )
 
-# Calcular proporciones correctamente
+    # Calculo de proporciones
     
     clutch_counts["proportion"] = (
     clutch_counts["count"] /
@@ -131,6 +137,14 @@ with tab1:
     barmode="group",
     title="Proporción de exito"
     )
+    st.plotly_chart(fig, use_container_width=True)
+
+    st.divider()
+    #---
+    # grafico de conteo de genero
+    #---
+    st.markdown("### Distribucion de genero por especie")
+    fig = px.histogram(filtered_df, x="sex", color="species", title="Distribución por Sexo")
     st.plotly_chart(fig, use_container_width=True)
 
 # --- TAB 2: ANÁLISIS UNIVARIADO (Seaborn/Matplotlib) ---
