@@ -52,10 +52,6 @@ st.markdown("""
 
 st.set_page_config(page_title="Penguins", layout="wide")
 
-# -------------------------
-# 2. CARGA DE DATOS (Original)
-# -------------------------
-
 st.title("🐧 Los Pingüinos Bio-polares")
 st.markdown("## Investigación y exploración interactiva de los datos del equipo II")
 
@@ -68,9 +64,8 @@ def load_data(url):
 df = load_data(url)
 counts = df["species"].value_counts().reset_index()
 counts.columns = ["species", "count"]
-# -------------------------
+
 # Preparación de datos UI
-# -------------------------
 df_ui = df.copy()
 df_ui["sex_ui"] = df["sex"].fillna("Desconocido")
 df_ui["clutch_ui"] = df["clutch_completion"].fillna("Desconocido")
@@ -106,12 +101,6 @@ nido = st.sidebar.multiselect(
 # -------------------------
 # 🔍 FILTRADO
 # -------------------------
-filtered_df = df[
-    (df["species"].isin(species)) &
-    (df["island"].isin(island)) &
-    (df["sex"].isin(sex)) &
-    (df["clutch_completion"].isin(nido))
-]
 mask = (
     df_ui["species"].isin(species) &
     df_ui["island"].isin(island) &
@@ -119,7 +108,7 @@ mask = (
     df_ui["clutch_ui"].isin(nido)
 )
 
-filtered_df = df[mask]  # 👈 importante: vuelves al DF original
+filtered_df = df[mask]
 
 # -------------------------
 # 📊 ESTRUCTURA DE PESTAÑAS
@@ -136,7 +125,7 @@ with tab1:
     st.markdown("""
     <style>
     .divider {
-        border-left: 2px solid #000;
+        border-left: 2px solid #fff;
         height: 100%;
     }
     </style>
@@ -145,65 +134,63 @@ with tab1:
     col1, divider, col2 = st.columns([1, 0.1, 1])
     
     with col1:
-        # Pie chart de especies
-        counts = filtered_df["species"].value_counts().reset_index()
-        fig_pie = px.pie(counts, names="species", values="count", title="Especies observadas")
+        counts_pie = filtered_df["species"].value_counts().reset_index()
+        # Se añade template="plotly_white" para que combine con el estilo de app_estilo.py
+        fig_pie = px.pie(counts_pie, names="species", values="count", title="Especies observadas", template="plotly_white")
         st.plotly_chart(fig_pie, use_container_width=True)
    
     with col2:
-        # histograma de especies por islas
-        fig_hist = px.histogram(filtered_df, x="island", color="species", title="Distribución por Isla")
+        fig_hist = px.histogram(filtered_df, x="island", color="species", title="Distribución por Isla", template="plotly_white")
         st.plotly_chart(fig_hist, use_container_width=True)
 
     st.markdown("##### 342 observaciones")
     st.dataframe(counts, use_container_width = True, hide_index=True)
     
-    
     st.divider()
-    #-----------
-    # grafico de anidado
-    #-----------
     st.markdown("### Observación de anidado por especie")
     clutch_counts = (
-    filtered_df
-    .groupby(["species", "clutch_completion"])
-    .size()
-    .reset_index(name="count")
+        filtered_df
+        .groupby(["species", "clutch_completion"])
+        .size()
+        .reset_index(name="count")
     )
-
-    # Calculo de proporciones
-    
     clutch_counts["proportion"] = (
-    clutch_counts["count"] /
-    clutch_counts.groupby("species")["count"].transform("sum")
-
+        clutch_counts["count"] /
+        clutch_counts.groupby("species")["count"].transform("sum")
     )
 
     fig = px.bar(
-    clutch_counts,
-    x="clutch_completion",
-    y="proportion",
-    color="species",
-    barmode="group",
-    title="Proporción de exito"
+        clutch_counts,
+        x="clutch_completion",
+        y="proportion",
+        color="species",
+        barmode="group",
+        title="Proporción de exito",
+        template="plotly_white"
     )
     st.plotly_chart(fig, use_container_width=True)
 
     st.divider()
-    #---
-    # grafico de conteo de genero
-    #---
     st.markdown("### Distribucion de genero por especie")
     fig = px.histogram(
         filtered_df, 
         x="sex", 
         color="species",
         barmode="group",
-        title="Existe paridad de genero")
+        title="Existe paridad de genero",
+        template="plotly_white")
     st.plotly_chart(fig, use_container_width=True)
 
-    st.markdown("##### Hallazgos por genero")
-    sex_counts = filtered_df.groupby(["species", "sex"]).size().reset_index(name="count")
+#recuento automatico
+    st.markdown("### 🧠 Resumen de hallazgos")
+
+# Conteo coherente con el histograma
+sex_counts = (
+    filtered_df
+    .groupby(["species", "sex"])
+    .size()
+    .reset_index(name="count")
+)
 
     for especie in sex_counts["species"].unique():
         subset = sex_counts[sex_counts["species"] == especie]
@@ -215,117 +202,83 @@ with tab1:
         max_count = subset["count"].max()
         top = subset[subset["count"] == max_count]
 
-        if len(top) > 1:
-            st.write(f"En la especie **{especie}** no hay un género predominante.")
-        else:
-            row = top.iloc[0]
-            porcentaje = round(row["prop"] * 100, 1)
-            st.write(f"En la especie **{especie}**, predomina el género **{row['sex']}** con un {porcentaje}% de los individuos.")
-            if porcentaje < 60:
-                st.write(f"En la especie **{especie}**, la distribución de género es bastante equilibrada.")
+    if len(top) > 1:
+        st.write(f"En la especie **{especie}** no hay un género predominante.")
+    else:
+        row = top.iloc[0]
+        porcentaje = round(row["prop"] * 100, 1)
+
+        st.write(
+            f"En la especie **{especie}**, predomina el género **{row['sex']}** "
+            f"con un {porcentaje}% de los individuos."
+        )
+    if len(top) == 1 and porcentaje < 60:
+        st.write(f"En la especie **{especie}**, la distribución de género es bastante equilibrada."
+)
 
 
 
-
-# --- TAB 2: ANÁLISIS UNIVARIADO (Seaborn/Matplotlib) ---
+# --- TAB 2: ANÁLISIS UNIVARIADO ---
 with tab2:
     st.subheader("📉 Análisis Univariado")
-
     variable = st.selectbox(
         "Selecciona una variable numérica:",
-        [
-            'culmen_length_(mm)', 
-            'culmen_depth_(mm)',
-            'flipper_length_(mm)', 
-            'body_mass_(g)'
-        ]
+        ['culmen_length_(mm)', 'culmen_depth_(mm)', 'flipper_length_(mm)', 'body_mass_(g)']
     )
 
     if filtered_df.empty:
         st.warning("No hay datos disponibles con los filtros seleccionados.")
         st.stop()
 
-    # Selector de tipo de gráfico
-    chart_type = st.radio(
-        "Selecciona tipo de visualización:",
-        ["Histograma", "Boxplot", "Densidad (KDE)"],
-        horizontal=True
-    )
+    chart_type = st.radio("Selecciona tipo de visualización:", ["Histograma", "Boxplot", "Densidad (KDE)"], horizontal=True)
 
-    # 📊 GRÁFICO PRINCIPAL (GRANDE)
-  
     fig, ax = plt.subplots(figsize=(10, 6))
+    
+    # Aplicar transparencia a Matplotlib como en app_estilo.py
+    fig.patch.set_alpha(0) 
+    ax.set_facecolor((0,0,0,0))
+    ax.tick_params(colors='white')
+    ax.xaxis.label.set_color('white')
+    ax.yaxis.label.set_color('white')
+    for spine in ax.spines.values():
+        spine.set_color('white')
 
     if chart_type == "Histograma":
-        sns.histplot(
-            filtered_df[variable],
-            bins=30,
-            kde=True,
-            ax=ax
-        )
-        ax.set_title(f"Distribución de {variable}")
-
+        sns.histplot(filtered_df[variable], bins=30, kde=True, ax=ax, color="#00b4d8")
+        ax.set_title(f"Distribución de {variable}", color="white")
     elif chart_type == "Boxplot":
-        sns.boxplot(
-            x=filtered_df[variable],
-            ax=ax
-        )
-        ax.set_title(f"Boxplot de {variable}")
-
+        sns.boxplot(x=filtered_df[variable], ax=ax, color="#00b4d8")
+        ax.set_title(f"Boxplot de {variable}", color="white")
     elif chart_type == "Densidad (KDE)":
-        sns.kdeplot(
-            filtered_df[variable],
-            fill=True,
-            ax=ax
-        )
-        ax.set_title(f"Densidad de {variable}")
+        sns.kdeplot(filtered_df[variable], fill=True, ax=ax, color="#00b4d8")
+        ax.set_title(f"Densidad de {variable}", color="white")
 
     st.pyplot(fig)
-
-    
-    # 📌 ESTADÍSTICAS CLAVE
     
     st.markdown("### 📊 Resumen estadístico")
-
     col1, col2, col3 = st.columns(3)
-
     col1.metric("Media", round(filtered_df[variable].mean(), 2))
     col2.metric("Mediana", round(filtered_df[variable].median(), 2))
     col3.metric("Desv. estándar", round(filtered_df[variable].std(), 2))
     
-    
     st.divider()
-    #---
-    # Distribución analisis univariado por cada especie
-    #---
     st.markdown("### Distribución por especie")
-
-    fig, ax = plt.subplots(figsize=(10, 6))
-    sns.kdeplot(
-            data=filtered_df,
-            x=variable,
-            hue="species",
-            fill=True,
-            alpha=0.4,
-            ax=ax
-    )
+    fig2, ax2 = plt.subplots(figsize=(10, 6))
+    fig2.patch.set_alpha(0)
+    ax2.set_facecolor((0,0,0,0))
+    ax2.tick_params(colors='white')
     
-    ax.set_title(f"Densidad de {variable} por especie")
-    st.pyplot(fig)
-
-    #---
+    sns.kdeplot(data=filtered_df, x=variable, hue="species", fill=True, alpha=0.4, ax=ax2)
+    ax2.set_title(f"Densidad de {variable} por especie", color="white")
+    st.pyplot(fig2)
 
     max_value = filtered_df[variable].max()
     min_value = filtered_df[variable].min()
     st.info(f"El valor máximo observado en {variable} es de {round(max_value, 2)}, y el mínimo es {round(min_value, 2)}")
 
-
-# --- TAB 3: GRÁFICOS INTERACTIVOS (Plotly) ---
+# --- TAB 3: GRÁFICOS INTERACTIVOS (Bivariado) ---
 with tab3:
     st.subheader("Relaciones y proporciones")
-   
-    
-    # Grafico de masa por especie
     st.divider()
     st.markdown("## Análisis de masa corporal")
     fig = px.box(
@@ -333,22 +286,24 @@ with tab3:
         x="species",
         y="body_mass_(g)",
         color="species",
-        title="Distribución de masa corporal por especie"
+        title="Distribución de masa corporal por especie",
+        template="plotly_white"
     )
-
     st.plotly_chart(fig, use_container_width=True)
+    
     st.divider()
     st.markdown("### Morfología del pico")
-    # Scatter plot
     fig_scatter = px.scatter(
         filtered_df, 
         x="culmen_length_(mm)", 
         y="culmen_depth_(mm)", 
         color="species",
-        title="Análisis comparativo de la longitud y profundidad del pico",    
-        labels={
-            "culmen_length_(mm)": "Longitud (mm)",
-            "culmen_depth_(mm)": "Profundidad (mm)"
-            }
-        )
+        title="Análisis comparativo de la longitud y profundidad del pico",
+        template="plotly_white",
+        labels={"culmen_length_(mm)": "Longitud (mm)", "culmen_depth_(mm)": "Profundidad (mm)"}
+    )
     st.plotly_chart(fig_scatter, use_container_width=True)
+    
+
+
+
