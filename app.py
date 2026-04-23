@@ -144,8 +144,56 @@ with tab1:
     # grafico de conteo de genero
     #---
     st.markdown("### Distribucion de genero por especie")
-    fig = px.histogram(filtered_df, x="sex", color="species", title="Distribución por Sexo")
+    fig = px.histogram(
+        filtered_df, 
+        x="sex", 
+        color="species",
+        barmode="group",
+        title="Existe paridad de genero")
     st.plotly_chart(fig, use_container_width=True)
+
+#recuento automatico
+    st.markdown("### 🧠 Resumen de hallazgos")
+
+# Conteo coherente con el histograma
+sex_counts = (
+    filtered_df
+    .groupby(["species", "sex"])
+    .size()
+    .reset_index(name="count")
+)
+
+for especie in sex_counts["species"].unique():
+    subset = sex_counts[sex_counts["species"] == especie]
+    
+    total = subset["count"].sum()
+    
+    if total == 0:
+        continue
+    
+    # Detectar si hay NaN (por si usas "Desconocido")
+    subset = subset.copy()
+    subset["prop"] = subset["count"] / total
+
+    # Caso empate
+    max_count = subset["count"].max()
+    top = subset[subset["count"] == max_count]
+
+    if len(top) > 1:
+        st.write(f"En la especie **{especie}** no hay un género predominante.")
+    else:
+        row = top.iloc[0]
+        porcentaje = round(row["prop"] * 100, 1)
+
+        st.write(
+            f"En la especie **{especie}**, predomina el género **{row['sex']}** "
+            f"con un {porcentaje}% de los individuos."
+        )
+    if len(top) == 1 and porcentaje < 60:
+        st.write(f"En la especie **{especie}**, la distribución de género es bastante equilibrada."
+)
+
+
 
 # --- TAB 2: ANÁLISIS UNIVARIADO (Seaborn/Matplotlib) ---
 with tab2:
