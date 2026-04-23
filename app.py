@@ -50,8 +50,55 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.set_page_config(page_title="Penguins", layout="wide")
+# -------------------------
+# 1. CONFIGURACIÓN Y ESTILOS
+# -------------------------
+st.set_page_config(page_title="Pingüinos Bio-polares", layout="wide", page_icon="🐧")
 
+# Inserción de estilos de app_estilo.py
+st.markdown("""
+<style>
+    .stApp {
+        background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
+                    url("https://images.pexels.com/photos/533856/pexels-photo-533856.jpeg");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+    }
+
+    section[data-testid="stSidebar"] {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+        backdrop-filter: blur(15px);
+    }
+
+    /* Estilo para tarjetas de métricas, tabla y Gráficos Univariados (Transparentes) */
+    .stMatplotlibChart, div[data-testid="stDataFrame"], div[data-testid="stMetric"] {
+        background-color: rgba(255, 255, 255, 0.15) !important; 
+        padding: 15px;
+        border-radius: 15px;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    /* Estilo para Gráficos Bivariados (Blanco + Sombra Pronunciada) */
+    div[data-testid="stPlotlyChart"] {
+        background-color: white !important;
+        padding: 15px;
+        border-radius: 15px;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45), 0 8px 10px rgba(0, 0, 0, 0.22) !important;
+    }
+
+    h1, h2, h3, p, label, .stMarkdown {
+        color: white !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# -------------------------
+# 2. CARGA DE DATOS (Original)
+# -------------------------
 st.title("🐧 Los Pingüinos Bio-polares")
 st.markdown("## Investigación y exploración interactiva de los datos del equipo II")
 
@@ -121,15 +168,6 @@ with tab1:
     st.write(f"Mostrando {filtered_df.shape[0]} registros")
     st.dataframe(filtered_df, use_container_width=True)
     st.divider()
-    st.markdown("### Conteo preliminar básico")
-    st.markdown("""
-    <style>
-    .divider {
-        border-left: 2px solid #fff;
-        height: 100%;
-    }
-    </style>
-    """, unsafe_allow_html=True)
     
     col1, divider, col2 = st.columns([1, 0.1, 1])
     
@@ -181,16 +219,8 @@ with tab1:
         template="plotly_white")
     st.plotly_chart(fig, use_container_width=True)
 
-#recuento automatico
     st.markdown("### 🧠 Resumen de hallazgos")
-
-# Conteo coherente con el histograma
-sex_counts = (
-    filtered_df
-    .groupby(["species", "sex"])
-    .size()
-    .reset_index(name="count")
-)
+    sex_counts = filtered_df.groupby(["species", "sex"]).size().reset_index(name="count")
 
     for especie in sex_counts["species"].unique():
         subset = sex_counts[sex_counts["species"] == especie]
@@ -202,21 +232,14 @@ sex_counts = (
         max_count = subset["count"].max()
         top = subset[subset["count"] == max_count]
 
-    if len(top) > 1:
-        st.write(f"En la especie **{especie}** no hay un género predominante.")
-    else:
-        row = top.iloc[0]
-        porcentaje = round(row["prop"] * 100, 1)
-
-        st.write(
-            f"En la especie **{especie}**, predomina el género **{row['sex']}** "
-            f"con un {porcentaje}% de los individuos."
-        )
-    if len(top) == 1 and porcentaje < 60:
-        st.write(f"En la especie **{especie}**, la distribución de género es bastante equilibrada."
-)
-
-
+        if len(top) > 1:
+            st.write(f"En la especie **{especie}** no hay un género predominante.")
+        else:
+            row = top.iloc[0]
+            porcentaje = round(row["prop"] * 100, 1)
+            st.write(f"En la especie **{especie}**, predomina el género **{row['sex']}** con un {porcentaje}% de los individuos.")
+            if porcentaje < 60:
+                st.write(f"En la especie **{especie}**, la distribución de género es bastante equilibrada.")
 
 # --- TAB 2: ANÁLISIS UNIVARIADO ---
 with tab2:
@@ -303,7 +326,3 @@ with tab3:
         labels={"culmen_length_(mm)": "Longitud (mm)", "culmen_depth_(mm)": "Profundidad (mm)"}
     )
     st.plotly_chart(fig_scatter, use_container_width=True)
-    
-
-
-
