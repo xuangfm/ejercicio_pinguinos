@@ -94,16 +94,16 @@ url = "https://raw.githubusercontent.com/xuangfm/ejercicio_pinguinos/analisis_un
 4.- Datos inexistentes o nulos. La muestra aportada no desvela si es el 100% de la nueva población.
 ```
 
-* **Conclusiones :** En cuanto a datos
+* **Conclusiones :** En cuanto a datos.
 
 ```
-1.- El dataset no es equilibrado en cuanto a sus especies. No todas las especies de pinguinos están en todas las islas
+1.- El dataset no es equilibrado en cuanto a sus especies. No todas las especies de pinguinos nacen en todas las islas.
 
 2.- El dataset tiene falta de datos. Principalmente en el sexo de los pinguinos
 
 3.- Detectamos tres variables: especies, islas y sexo
 
-4.-La mitad de los pingüinos se encuentra en la isla Biscoe, una minoria esta en la isla Torgersen, y los demás en la isla Dream.
+4.-La mitad de los pingüinos nacen en la isla Biscoe, una minoria (Adelie) en la isla Torgersen, y los demás en la isla Dream.
 
 5.- Solo se registra el primer año de vida del pinguino en cada estudio.
 ```
