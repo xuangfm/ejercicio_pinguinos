@@ -3,98 +3,78 @@ import pandas as pd
 import plotly.express as px
 import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib as mpl
 # -------------------------
-# 1. CONFIGURACIÓN Y ESTILOS
+# CONFIGURACIÓN
 # -------------------------
-st.set_page_config(page_title="Pingüinos Bio-polares", layout="wide", page_icon="🐧")
+st.set_page_config(
+    page_title="Pingüinos Bio-polares",
+    layout="wide",
+    page_icon="🐧"
+)
 
-# Inserción de estilos de app_estilo.py
-st.markdown("""
+# Detectar modo oscuro/claro
+is_dark = st.get_option("theme.base") == "dark"
+#----------------------
+# 🎨 SISTEMA DE ESTILOS PRO
+# -------------------------
+
+def load_css():
+     overlay = "rgba(0,0,0,0.6)" if is_dark else "rgba(255,255,255,0.4)"
+     text_color = "white" if is_dark else "#111"
+     sidebar_bg = "rgba(0,0,0,0.4)" if is_dark else "rgba(255,255,255,0.6)"
+     st.markdown(f"""
 <style>
-    .stApp {
-        background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
-                    url("https://images.pexels.com/photos/533856/pexels-photo-533856.jpeg");
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-    }
 
-    section[data-testid="stSidebar"] {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        backdrop-filter: blur(15px);
-    }
-            
+/* ===== BACKGROUND ===== */
+    .stApp {{
+    background: linear-gradient(rgba({overlay}, {overlay}),
+    url("https://images.pexels.com/photos/533856/pexels-photo-533856.jpeg");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    }}
+    
 
-    /* Estilo para tarjetas de métricas, tabla y Gráficos Univariados (Transparentes) */
-    .stMatplotlibChart, div[data-testid="stDataFrame"], div[data-testid="stMetric"] {
-        background-color: rgba(255, 255, 255, 0,15) !important; 
-        padding: 10px;
-        border-radius: 12px;
-        backdrop-filter: blur(8px);
-        border: 5px backdrop-filter rgba(255, 255, 255, 255);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-    }
+/* ===== CONTENEDOR PRINCIPAL (CLAVE REAL) ===== */
+    .main * {{
+    color: {text_color} !important;
+    }}
 
-    /* Estilo para Gráficos Bivariados (Blanco + Sombra Pronunciada) */
-    div[data-testid="stPlotlyChart"] {
-        background-color: rgba(255, 255, 255, 255) !important;
-        padding: 5px;
-        border-radius: 10px;
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45), 0 8px 10px rgba(0, 0, 0, 0.22) !important;
-    }
-            
-    h1, h2, h3, p, label, .stMarkdown {
-        color: white !important;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-    }
-</style>
-""", unsafe_allow_html=True)
+/* ===== SIDEBAR ===== */
+    section[data-testid="stSidebar"] * {{
+    background: {sidebar_bg} !important;
+    backdrop-filter: blur(12px);
+    }}
+
+    section[data-testid="stSidebar"] * {{
+        color: {text_color} !important;
+    }}
+
+    </style>
+    """, unsafe_allow_html=True)
+
+# 👇 LLAMADA CORRECTA
+load_css()
 
 # -------------------------
-# 1. CONFIGURACIÓN Y ESTILOS
+# 🧱 COMPONENTE REUTILIZABLE
 # -------------------------
-st.set_page_config(page_title="Pingüinos Bio-polares", layout="wide", page_icon="🐧")
+def card(content_func):
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    content_func()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# Inserción de estilos de app_estilo.py
-st.markdown("""
-<style>
-    .stApp {
-        background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)), 
-                    url("https://images.pexels.com/photos/533856/pexels-photo-533856.jpeg");
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-    }
-
-    section[data-testid="stSidebar"] {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        backdrop-filter: blur(15px);
-    }
-
-    /* Estilo para tarjetas de métricas, tabla y Gráficos Univariados (Transparentes) */
-    .stMatplotlibChart, div[data-testid="stDataFrame"], div[data-testid="stMetric"] {
-        background-color: rgba(255, 255, 255, 0.15) !important; 
-        padding: 15px;
-        border-radius: 15px;
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-    }
-
-    /* Estilo para Gráficos Bivariados (Blanco + Sombra Pronunciada) */
-    div[data-testid="stPlotlyChart"] {
-        background-color: white !important;
-        padding: 15px;
-        border-radius: 15px;
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45), 0 8px 10px rgba(0, 0, 0, 0.22) !important;
-    }
-
-    h1, h2, h3, p, label, .stMarkdown {
-        color: white !important;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-    }
-</style>
-""", unsafe_allow_html=True)
+# -------------------------
+# 📊 CONFIGURACIÓN GLOBAL MATPLOTLIB
+# -------------------------
+mpl.rcParams.update({
+    "text.color": "white" if is_dark else "black",
+    "axes.labelcolor": "white" if is_dark else "black",
+    "xtick.color": "white" if is_dark else "black",
+    "ytick.color": "white" if is_dark else "black",
+    "axes.edgecolor": "white" if is_dark else "black"
+})
 
 # -------------------------
 # 2. CARGA DE DATOS (Original)
@@ -107,7 +87,7 @@ url = "https://raw.githubusercontent.com/xuangfm/ejercicio_pinguinos/analisis_un
 @st.cache_data
 def load_data(url):
     return pd.read_csv(url)
-
+text_color = "white" if is_dark else "#111"
 df = load_data(url)
 counts = df["species"].value_counts().reset_index()
 counts.columns = ["species", "count"]
@@ -161,6 +141,7 @@ filtered_df = df[mask]
 # 📊 ESTRUCTURA DE PESTAÑAS
 # -------------------------
 tab1, tab2, tab3 = st.tabs(["📋 Vista de Datos", "📉 Análisis Univariado", "📊 Análisis Bivariado"])
+
 
 # --- TAB 1: VISTA DE DATOS ---
 with tab1:
