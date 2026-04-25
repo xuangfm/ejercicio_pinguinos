@@ -4,8 +4,10 @@ import plotly.express as px
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib as mpl
+
+
 # -------------------------
-# CONFIGURACIÓN
+# CONFIGURACIÓN DE PÁGINA
 # -------------------------
 st.set_page_config(
     page_title="Pingüinos Bio-polares",
@@ -13,297 +15,256 @@ st.set_page_config(
     page_icon="🐧"
 )
 
-# Detectar modo oscuro/claro
 is_dark = st.get_option("theme.base") == "dark"
-#----------------------
-# 🎨 SISTEMA DE ESTILOS PRO
+
 # -------------------------
-
+# 🎨 SISTEMA DE ESTILOS PRO (MEJORADO)
+# -------------------------
 def load_css():
-     overlay = "rgba(0,0,0,0.6)" if is_dark else "rgba(255,255,255,0.4)"
-     text_color = "white" if is_dark else "#111"
-     sidebar_bg = "rgba(0,0,0,0.4)" if is_dark else "rgba(255,255,255,0.6)"
-     st.markdown(f"""
-<style>
-
-/* ===== BACKGROUND ===== */
+    overlay = "rgba(20,0,0,1)" if is_dark else "rgba(255,255,255,0.3)"
+    card_bg = "rgba(255,255,255,0.1)" if is_dark else "rgba(100,150,100,0.1)"
+    text_color = "#F7F7F7" if is_dark else "#2A2424"
+    
+    st.markdown(f"""
+    <style>
+    /* Fondo General */
     .stApp {{
-    background: linear-gradient(rgba({overlay}, {overlay}),
-    url("https://images.pexels.com/photos/533856/pexels-photo-533856.jpeg");
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
+        background-image: linear-gradient({overlay}, {overlay}),
+                          url("https://images.pexels.com/photos/533856/pexels-photo-533856.jpeg") !important;
+        background-size: cover !important;
+        background-attachment: fixed !important;
+    }}
+    /* Cabecera */
+    header[data-testid="stHeader"] {{
+        background: rgba(0,0,0,0) !important;
+        backdrop-filter: blur(1px);
+        -webkit-backdrop-filter: blur(8px);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }}
+    /* Títulos con Estilo */
+    .main-title {{
+        font-size: 2rem !important;
+        font-weight: 500 !important;
+        color: {text_color} !important;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        margin-bottom: 0px;
     }}
     
-
-/* ===== CONTENEDOR PRINCIPAL (CLAVE REAL) ===== */
-    .main * {{
-    color: {text_color} !important;
+    .sub-title {{
+        color: #00b4d8 !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 2rem;
     }}
 
-/* ===== SIDEBAR ===== */
-    section[data-testid="stSidebar"] * {{
-    background: {sidebar_bg} !important;
-    backdrop-filter: blur(12px);
+    /* Tarjetas personalizadas para métricas */
+    [data-testid="stMetricValue"] {{
+        font-size: 2rem !important;
+        color: #00b4d8 !important;
+    }}
+    
+    div[data-testid="stMetric"] {{
+        background: {card_bg};
+        border-radius: 15px;
+        padding: 10px !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
     }}
 
-    section[data-testid="stSidebar"] * {{
-        color: {text_color} !important;
+    /* Contenedores de Gráficos */
+    div[data-testid="stPlotlyChart"], .stMatplotlibChart {{
+        background: {card_bg} !important;
+        border-radius: 20px !important;
+        padding: 1px !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
     }}
+    
+    /* Contenedores de Gráficos */
+    div[data-testid="stPlotlyChart"], .stMatplotlibChart {{
+        background: {card_bg} !important;
+        border-radius: 20px !important;
+        padding: 1px !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    }}
+  
 
+    /* Sidebar Refinado */
+    section[data-testid="stSidebar"] {{
+        background: rgba(0,0,0,0.1) !important;
+        backdrop-filter: blur(5px);
+    }}
+    
+    .stMarkdown p {{ color: {text_color}; }}
     </style>
     """, unsafe_allow_html=True)
 
-# 👇 LLAMADA CORRECTA
 load_css()
 
 # -------------------------
-# 🧱 COMPONENTE REUTILIZABLE
+# 2. CARGA Y PROCESAMIENTO
 # -------------------------
-def card(content_func):
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    content_func()
-    st.markdown('</div>', unsafe_allow_html=True)
-
-# -------------------------
-# 📊 CONFIGURACIÓN GLOBAL MATPLOTLIB
-# -------------------------
-mpl.rcParams.update({
-    "text.color": "white" if is_dark else "black",
-    "axes.labelcolor": "white" if is_dark else "black",
-    "xtick.color": "white" if is_dark else "black",
-    "ytick.color": "white" if is_dark else "black",
-    "axes.edgecolor": "white" if is_dark else "black"
-})
-
-# -------------------------
-# 2. CARGA DE DATOS (Original)
-# -------------------------
-st.title("🐧 Los Pingüinos Bio-polares")
-st.markdown("## Investigación y exploración interactiva de los datos del equipo II")
-
 url = "https://raw.githubusercontent.com/xuangfm/ejercicio_pinguinos/analisis_univariado/df_clean_penguins.csv"
 
 @st.cache_data
 def load_data(url):
     return pd.read_csv(url)
-text_color = "white" if is_dark else "#111"
-df = load_data(url)
-counts = df["species"].value_counts().reset_index()
-counts.columns = ["species", "count"]
 
-# Preparación de datos UI
+df = load_data(url)
+
+# ----
+# Manejo de nulos para la UI
 df_ui = df.copy()
 df_ui["sex_ui"] = df["sex"].fillna("Desconocido")
 df_ui["clutch_ui"] = df["clutch_completion"].fillna("Desconocido")
 
 # -------------------------
+# 🏗️ HEADER CON HTML/MARKDOWN
+# -------------------------
+st.markdown('<h1 class="main-title">🐧 Los Pingüinos Bio-polares</h1>', unsafe_allow_html=True)
+st.markdown('<p class="sub-title">Investigación y exploración interactiva de datos • Equipo II</p>', unsafe_allow_html=True)
+
+# -------------------------
 # 🎛️ FILTROS (SIDEBAR)
 # -------------------------
-st.sidebar.header("Filtros Globales")
+with st.sidebar:
+    st.image("https://img.freepik.com/fotos-premium/pinguino-botella-cerveza-botella-cerveza_783884-432625.jpg?semt=ais_hybrid&w=740&q=80", width=160)
+    st.header("Filtros")
+    
+    species = st.multiselect("Especies:", options=sorted(df["species"].unique()), default=df["species"].unique())
+    island = st.multiselect("Islas:", options=sorted(df["island"].unique()), default=df["island"].unique())
+    sex = st.multiselect("Sexo:", options=sorted(df_ui["sex_ui"].unique()), default=df_ui["sex_ui"].unique())
 
-species = st.sidebar.multiselect(
-    "Selecciona especie:",
-    options=sorted(df["species"].unique()),
-    default=sorted(df["species"].unique())
-)
-
-island = st.sidebar.multiselect(
-    "Selecciona isla:",
-    options=sorted(df["island"].unique()),
-    default=sorted(df["island"].unique())
-)
-
-sex = st.sidebar.multiselect(
-    "Selecciona sexo:",
-    options=sorted(df_ui["sex_ui"].unique()),
-    default=sorted(df_ui["sex_ui"].unique())
-)
-nido = st.sidebar.multiselect(
-    "Selecciona eclosión de nidos:",
-    options=sorted(df_ui["clutch_ui"].unique()),
-    default=sorted(df_ui["clutch_ui"].unique())
-)
+# Filtrado de datos
+mask = (df_ui["species"].isin(species) & df_ui["island"].isin(island) & df_ui["sex_ui"].isin(sex))
+filtered_df = df_ui[mask]
 
 # -------------------------
-# 🔍 FILTRADO
+# 📊 PESTAÑAS
 # -------------------------
-mask = (
-    df_ui["species"].isin(species) &
-    df_ui["island"].isin(island) &
-    df_ui["sex_ui"].isin(sex) &
-    df_ui["clutch_ui"].isin(nido)
-)
+tab1, tab2, tab3 = st.tabs(["📋 Vista General", "📉 Univariado", "📊 Bivariado"])
 
-filtered_df = df[mask]
-
-# -------------------------
-# 📊 ESTRUCTURA DE PESTAÑAS
-# -------------------------
-tab1, tab2, tab3 = st.tabs(["📋 Vista de Datos", "📉 Análisis Univariado", "📊 Análisis Bivariado"])
-
-
-# --- TAB 1: VISTA DE DATOS ---
 with tab1:
-    st.subheader("Exploración de la tabla")
-    st.write(f"Mostrando {filtered_df.shape[0]} registros")
-    st.dataframe(filtered_df, use_container_width=True)
-    st.divider()
+    # Visualización de datos
+    with st.expander("🔍 Ver tabla de datos."):
+        st.dataframe(filtered_df, use_container_width=True)
+    # Métricas clave en la parte superior
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Total Observaciones", len(filtered_df))
+    m2.metric("Especies Seleccionadas", len(species))
+    m3.metric("Islas Cubiertas", len(island))
+
+    st.spacer = st.markdown("<br>", unsafe_allow_html=True)
     
-    col1, divider, col2 = st.columns([1, 0.1, 1])
-    
-    with col1:
-        counts_pie = filtered_df["species"].value_counts().reset_index()
-        # Se añade template="plotly_white" para que combine con el estilo de app_estilo.py
-        fig_pie = px.pie(counts_pie, names="species", values="count", title="Especies observadas", template="plotly_white")
-        st.plotly_chart(fig_pie, use_container_width=True)
+    col_left, col_right = st.columns(2)
    
-    with col2:
-        fig_hist = px.histogram(filtered_df, x="island", color="species", title="Distribución por Isla", template="plotly_white")
+    with col_left:
+        fig_pie = px.pie(
+            filtered_df,
+            names="species",
+            color="species",           
+            hole=0.4,
+            title="Distribución de Especies"
+        )       
+        fig_pie.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color="white" if is_dark else "black")
+        st.plotly_chart(fig_pie, use_container_width=True,)
+
+        st.divider()
+        fig_sex = px.histogram(
+            filtered_df,
+            x="sex",
+            color="species",
+            barmode="group",
+            title="Existe paridad de género"
+        )
+        fig_sex.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(fig_sex, use_container_width=True)
+    
+    with col_right:
+        fig_hist = px.histogram(
+            filtered_df,
+            x="island",
+            color="species",
+            barmode="group",
+            title="Población por Isla"
+        )
+        fig_hist.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="white" if is_dark else "black")
         st.plotly_chart(fig_hist, use_container_width=True)
 
-    st.markdown("##### 342 observaciones")
-    st.dataframe(counts, use_container_width = True, hide_index=True)
+        st.divider()
+
+        clutch_counts = filtered_df.groupby(["species", "clutch_completion"]).size().reset_index(name="count")
+        clutch_counts["proportion"] = clutch_counts["count"] / clutch_counts.groupby("species")["count"].transform("sum")
+        fig_clutch = px.bar(
+            clutch_counts,
+            x="clutch_completion",
+            y="proportion",
+            color="species",
+            barmode="group",
+            title="Observación de anidado por especie"
+        )
+        fig_clutch.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+        st.plotly_chart(fig_clutch, use_container_width=True)
+
     
-    st.divider()
-    st.markdown("### Observación de anidado por especie")
-    clutch_counts = (
-        filtered_df
-        .groupby(["species", "clutch_completion"])
-        .size()
-        .reset_index(name="count")
-    )
-    clutch_counts["proportion"] = (
-        clutch_counts["count"] /
-        clutch_counts.groupby("species")["count"].transform("sum")
-    )
+    
 
-    fig = px.bar(
-        clutch_counts,
-        x="clutch_completion",
-        y="proportion",
-        color="species",
-        barmode="group",
-        title="Proporción de exito",
-        template="plotly_white"
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    with st.expander("🔍 Resumen estadístico."):
+        st.write(filtered_df[["species", "island", "sex", "culmen_length_(mm)", "culmen_depth_(mm)", "flipper_length_(mm)", "body_mass_(g)"]].describe())
+    #st.markdown("### 🧠 Resumen de hallazgos")
+    #st.write(filtered_df[["species", "island", "sex", "culmen_length_(mm)", "culmen_depth_(mm)", "flipper_length_(mm)", "body_mass_(g)"]].describe())
 
-    st.divider()
-    st.markdown("### Distribucion de genero por especie")
-    fig = px.histogram(
-        filtered_df, 
-        x="sex", 
-        color="species",
-        barmode="group",
-        title="Existe paridad de genero",
-        template="plotly_white")
-    st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown("### 🧠 Resumen de hallazgos")
-    sex_counts = filtered_df.groupby(["species", "sex"]).size().reset_index(name="count")
-
-    for especie in sex_counts["species"].unique():
-        subset = sex_counts[sex_counts["species"] == especie]
-        total = subset["count"].sum()
-        if total == 0: continue
-        
-        subset = subset.copy()
-        subset["prop"] = subset["count"] / total
-        max_count = subset["count"].max()
-        top = subset[subset["count"] == max_count]
-
-        if len(top) > 1:
-            st.write(f"En la especie **{especie}** no hay un género predominante.")
-        else:
-            row = top.iloc[0]
-            porcentaje = round(row["prop"] * 100, 1)
-            st.write(f"En la especie **{especie}**, predomina el género **{row['sex']}** con un {porcentaje}% de los individuos.")
-            if porcentaje < 60:
-                st.write(f"En la especie **{especie}**, la distribución de género es bastante equilibrada.")
-
-# --- TAB 2: ANÁLISIS UNIVARIADO ---
 with tab2:
-    st.subheader("📉 Análisis Univariado")
-    variable = st.selectbox(
-        "Selecciona una variable numérica:",
-        ['culmen_length_(mm)', 'culmen_depth_(mm)', 'flipper_length_(mm)', 'body_mass_(g)']
-    )
-
-    if filtered_df.empty:
-        st.warning("No hay datos disponibles con los filtros seleccionados.")
-        st.stop()
-
+    st.markdown("### 🧬 Análisis de Atributos")
+    variable = st.selectbox("Selecciona una variable numérica:", ['culmen_length_(mm)', 'culmen_depth_(mm)', 'flipper_length_(mm)', 'body_mass_(g)'])
     chart_type = st.radio("Selecciona tipo de visualización:", ["Histograma", "Boxplot", "Densidad (KDE)"], horizontal=True)
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    
-    # Aplicar transparencia a Matplotlib como en app_estilo.py
-    fig.patch.set_alpha(0) 
+    fig, ax = plt.subplots(figsize=(10, 4))
+    fig.patch.set_alpha(0)
     ax.set_facecolor((0,0,0,0))
-    ax.tick_params(colors='white')
-    ax.xaxis.label.set_color('white')
-    ax.yaxis.label.set_color('white')
-    for spine in ax.spines.values():
-        spine.set_color('white')
-
+    
     if chart_type == "Histograma":
         sns.histplot(filtered_df[variable], bins=30, kde=True, ax=ax, color="#00b4d8")
-        ax.set_title(f"Distribución de {variable}", color="white")
     elif chart_type == "Boxplot":
         sns.boxplot(x=filtered_df[variable], ax=ax, color="#00b4d8")
-        ax.set_title(f"Boxplot de {variable}", color="white")
     elif chart_type == "Densidad (KDE)":
         sns.kdeplot(filtered_df[variable], fill=True, ax=ax, color="#00b4d8")
-        ax.set_title(f"Densidad de {variable}", color="white")
-
+    
     st.pyplot(fig)
     
     st.markdown("### 📊 Resumen estadístico")
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Media", round(filtered_df[variable].mean(), 2))
-    col2.metric("Mediana", round(filtered_df[variable].median(), 2))
-    col3.metric("Desv. estándar", round(filtered_df[variable].std(), 2))
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Media", round(filtered_df[variable].mean(), 2))
+    c2.metric("Mediana", round(filtered_df[variable].median(), 2))
+    c3.metric("Desv. estándar", round(filtered_df[variable].std(), 2))
     
     st.divider()
     st.markdown("### Distribución por especie")
-    fig2, ax2 = plt.subplots(figsize=(10, 6))
+    fig2, ax2 = plt.subplots(figsize=(10, 4))
     fig2.patch.set_alpha(0)
     ax2.set_facecolor((0,0,0,0))
-    ax2.tick_params(colors='white')
-    
     sns.kdeplot(data=filtered_df, x=variable, hue="species", fill=True, alpha=0.4, ax=ax2)
-    ax2.set_title(f"Densidad de {variable} por especie", color="white")
     st.pyplot(fig2)
 
-    max_value = filtered_df[variable].max()
-    min_value = filtered_df[variable].min()
-    st.info(f"El valor máximo observado en {variable} es de {round(max_value, 2)}, y el mínimo es {round(min_value, 2)}")
-
-# --- TAB 3: GRÁFICOS INTERACTIVOS (Bivariado) ---
 with tab3:
-    st.subheader("Relaciones y proporciones")
-    st.divider()
-    st.markdown("## Análisis de masa corporal")
-    fig = px.box(
-        filtered_df,
-        x="species",
-        y="body_mass_(g)",
-        color="species",
-        title="Distribución de masa corporal por especie",
-        template="plotly_white"
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    st.markdown("### 🔗 Relaciones Morfológicas")
     
+    st.markdown("## Análisis de masa corporal")
+    fig_box = px.box(filtered_df, x="species", y="body_mass_(g)", color="species", title="Distribución de masa corporal por especie")
+    fig_box.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
+    st.plotly_chart(fig_box, use_container_width=True)
+
     st.divider()
     st.markdown("### Morfología del pico")
+    
     fig_scatter = px.scatter(
-        filtered_df, 
-        x="culmen_length_(mm)", 
-        y="culmen_depth_(mm)", 
-        color="species",
-        title="Análisis comparativo de la longitud y profundidad del pico",
-        template="plotly_white",
-        labels={"culmen_length_(mm)": "Longitud (mm)", "culmen_depth_(mm)": "Profundidad (mm)"}
+        filtered_df, x="culmen_length_(mm)", y="culmen_depth_(mm)", 
+        color="species", size="body_mass_(g)", hover_name="island",
+        title="Longitud vs Profundidad del Culmen (Pico)",
+        template="plotly_dark" if is_dark else "plotly_white"
     )
+    fig_scatter.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
     st.plotly_chart(fig_scatter, use_container_width=True)
