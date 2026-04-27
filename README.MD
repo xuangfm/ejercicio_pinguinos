@@ -2,8 +2,7 @@
 > **Estado:** En Progreso 🟢 | **Versión:** 1.0 | **Investigadores:** Alejandro08, Francisco, Graceila, Diana, Julia, Juan.G
 
 ---
-## [Abrir Dashboard](https://biopolares.streamlit.app/){:target="_blank" rel="noopener"}
-
+## Abrir[Dashboard](https://biopolares.streamlit.app/)
 ## 📋 Resumen del Proyecto
 Este proyecto tiene como objetivo el estudio demográfico y morfométrico de tres especies de pingüinos en el Archipiélago Palmer. Se busca identificar patrones de crecimiento y diferencias clave entre especies según su hábitat.
 
