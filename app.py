@@ -120,7 +120,7 @@ load_css()
 # -------------------------
 # 2. CARGA Y PROCESAMIENTO
 # -------------------------
-url = "https://raw.githubusercontent.com/xuangfm/ejercicio_pinguinos/analisis_univariado/df_clean_penguins.csv"
+url = "https://raw.githubusercontent.com/xuangfm/ejercicio_pinguinos/dev/df_clean_penguins.csv"
 
 @st.cache_data
 def load_data(url):
