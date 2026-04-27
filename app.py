@@ -94,9 +94,22 @@ def load_css():
 
     /* Sidebar Refinado */
     section[data-testid="stSidebar"] {{
-        background: rgba(0,0,0,0.1) !important;
-        backdrop-filter: blur(5px);
+        background: rgba(1,1,1,0.1) !important;
+        backdrop-filter: blur(5px);    
     }}
+    section[data-testid="stSidebar"] div[data-baseweb="select"] > div {{
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }}
+    /* 🎯 Tags seleccionados en multiselect */
+    section[data-testid="stSidebar"] [data-baseweb="tag"] {{
+    background-color: rgba(0, 180, 216, 0.35) !important;
+    color: white !important;
+    border-radius: 8px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }}
+    
     
     .stMarkdown p {{ color: {text_color}; }}
     </style>
@@ -114,6 +127,9 @@ def load_data(url):
     return pd.read_csv(url)
 
 df = load_data(url)
+color_palette = {"adelie": "#98bd49",
+                 "chinstrap": "#e622b8",
+                 "gentoo": "#237ca5"}
 
 # ----
 # Manejo de nulos para la UI
@@ -131,7 +147,7 @@ st.markdown('<p class="sub-title">Investigación y exploración interactiva de d
 # 🎛️ FILTROS (SIDEBAR)
 # -------------------------
 with st.sidebar:
-    st.image("https://img.freepik.com/fotos-premium/pinguino-botella-cerveza-botella-cerveza_783884-432625.jpg?semt=ais_hybrid&w=740&q=80", width=160)
+    st.image("https://cdn.creazilla.com/silhouettes/7950517/penguin-silhouette-4bb7ee-lg.png", width=160)
     st.header("Filtros")
     
     species = st.multiselect("Especies:", options=sorted(df["species"].unique()), default=df["species"].unique())
@@ -140,13 +156,16 @@ with st.sidebar:
 
 # Filtrado de datos
 mask = (df_ui["species"].isin(species) & df_ui["island"].isin(island) & df_ui["sex_ui"].isin(sex))
-filtered_df = df_ui[mask]
+filtered_df = df_ui[mask].copy()
 
 # -------------------------
 # 📊 PESTAÑAS
 # -------------------------
 tab1, tab2, tab3 = st.tabs(["📋 Vista General", "📉 Univariado", "📊 Bivariado"])
 
+# sugerencia skynet
+all_species = ["adelie", "chinstrap", "gentoo"]
+#-------
 with tab1:
     # Visualización de datos
     with st.expander("🔍 Ver tabla de datos."):
@@ -159,26 +178,31 @@ with tab1:
 
     st.spacer = st.markdown("<br>", unsafe_allow_html=True)
     
+    #-----------
     col_left, col_right = st.columns(2)
    
     with col_left:
         fig_pie = px.pie(
             filtered_df,
             names="species",
-            color="species",           
+            color="species",
+            category_orders={"species": ["adelie", "chinstrap", "gentoo"]},# 👈 important
+            color_discrete_map=color_palette,         
             hole=0.4,
             title="Distribución de Especies"
         )       
         fig_pie.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color="white" if is_dark else "black")
         st.plotly_chart(fig_pie, use_container_width=True,)
-
+        
         st.divider()
         fig_sex = px.histogram(
             filtered_df,
             x="sex",
             color="species",
+            category_orders={"species": ["adelie", "chinstrap", "gentoo"]},
             barmode="group",
-            title="Existe paridad de género"
+            title="Existe paridad de género",
+            color_discrete_map=color_palette
         )
         fig_sex.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_sex, use_container_width=True)
@@ -189,7 +213,9 @@ with tab1:
             x="island",
             color="species",
             barmode="group",
-            title="Población por Isla"
+            category_orders={"species": ["adelie", "chinstrap", "gentoo"]},
+            title="Población por Isla",
+            color_discrete_map=color_palette
         )
         fig_hist.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", font_color="white" if is_dark else "black")
         st.plotly_chart(fig_hist, use_container_width=True)
@@ -203,19 +229,19 @@ with tab1:
             x="clutch_completion",
             y="proportion",
             color="species",
+            category_orders={"species": ["adelie", "chinstrap", "gentoo"]},
             barmode="group",
-            title="Observación de anidado por especie"
+            title="Observación de anidado por especie",
+            color_discrete_map=color_palette
         )
         fig_clutch.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig_clutch, use_container_width=True)
 
-    
-    
-
+       
     with st.expander("🔍 Resumen estadístico."):
         st.write(filtered_df[["species", "island", "sex", "culmen_length_(mm)", "culmen_depth_(mm)", "flipper_length_(mm)", "body_mass_(g)"]].describe())
-    #st.markdown("### 🧠 Resumen de hallazgos")
-    #st.write(filtered_df[["species", "island", "sex", "culmen_length_(mm)", "culmen_depth_(mm)", "flipper_length_(mm)", "body_mass_(g)"]].describe())
+    
+    
 
 with tab2:
     st.markdown("### 🧬 Análisis de Atributos")
@@ -258,13 +284,44 @@ with tab3:
     st.plotly_chart(fig_box, use_container_width=True)
 
     st.divider()
+    #grafica sobre  formas de pico
     st.markdown("### Morfología del pico")
     
     fig_scatter = px.scatter(
-        filtered_df, x="culmen_length_(mm)", y="culmen_depth_(mm)", 
-        color="species", size="body_mass_(g)", hover_name="island",
+        filtered_df,
+        x="culmen_length_(mm)",
+        y="culmen_depth_(mm)", 
+        color="species",
+        size="body_mass_(g)",
+        hover_name="island",
         title="Longitud vs Profundidad del Culmen (Pico)",
         template="plotly_dark" if is_dark else "plotly_white"
     )
     fig_scatter.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
     st.plotly_chart(fig_scatter, use_container_width=True)
+    #----------
+
+    st.divider()
+    st.markdown("### Relación entre aleta y género, distribuida por especie")
+    
+ ##--------
+
+    fig_flipper_sex = px.strip(
+        filtered_df,
+            x="sex",
+            y="flipper_length_(mm)",
+            color="species",
+            hover_name="species",
+            title="Flipper length por sexo y especie"
+    )
+
+    fig_flipper_sex.update_traces(jitter=1, pointpos=2, marker_size=15, opacity=0.9, marker_line_width=1)
+
+    fig_flipper_sex.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font_color="white" if is_dark else "black",
+        legend_title_text="Especie"
+    )
+
+    st.plotly_chart(fig_flipper_sex, use_container_width=True)
