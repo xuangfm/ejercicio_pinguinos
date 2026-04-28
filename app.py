@@ -27,6 +27,34 @@ def load_css():
     
     st.markdown(f"""
     <style>
+    
+                /* -------------------------
+   ✨ ANIMACIONES Y DINAMISMO
+------------------------- */
+
+/* Transiciones suaves */
+.card, div[data-testid="stMetric"], .stButton>button {{
+    transition: all 0.25s ease;
+}}
+
+/* Hover elevación */
+.card:hover, div[data-testid="stMetric"]:hover {{
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.25);
+}}
+
+/* Fade-in global */
+@keyframes fadeIn {{
+    from {{ opacity: 0; transform: translateY(8px); }}
+    to {{ opacity: 1; transform: translateY(0); }}
+}}
+
+.main-title, .card, div[data-testid="stMetric"], 
+div[data-testid="stPlotlyChart"] {{
+    animation: fadeIn 0.8s ease;
+}}
+ 
+
     /* Fondo General */
     .stApp {{
         background-image: linear-gradient({overlay}, {overlay}),
@@ -34,84 +62,126 @@ def load_css():
         background-size: cover !important;
         background-attachment: fixed !important;
     }}
+
     /* Cabecera */
     header[data-testid="stHeader"] {{
-        background: rgba(0,0,0,0) !important;
-        backdrop-filter: blur(1px);
-        -webkit-backdrop-filter: blur(8px);
+        background: transparent !important;
+        backdrop-filter: blur(8px);
         border-bottom: 1px solid rgba(255,255,255,0.1);
     }}
-    /* Títulos con Estilo */
+
+    /* Títulos */
     .main-title {{
-        font-size: 2rem !important;
-        font-weight: 500 !important;
-        color: {text_color} !important;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        margin-bottom: 0px;
-    }}
-    
-    .sub-title {{
-        color: #00b4d8 !important;
-        font-size: 1rem !important;
-        font-weight: 600 !important;
-        margin-bottom: 2rem;
+        font-size: 2.4rem;
+        font-weight: 700;
+        color: #F8FAFC;
+        margin-bottom: 0.25rem;
+        letter-spacing: -0.02em;
     }}
 
-    /* Tarjetas personalizadas para métricas */
-    [data-testid="stMetricValue"] {{
-        font-size: 2rem !important;
-        color: #00b4d8 !important;
+    .sub-title {{
+        font-size: 1rem;
+        color: #CBD5E1;
+        margin-bottom: 1.5rem;
     }}
-    
+
+    /* Card */
+    .card {{
+        background: rgba(15, 23, 42, 0.68);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.20);
+        backdrop-filter: blur(10px);
+    }}
+
+
+    /* Metrics */
     div[data-testid="stMetric"] {{
         background: {card_bg};
-        border-radius: 15px;
-        padding: 10px !important;
+        border-radius: 16px;
+        padding: 14px;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
     }}
 
-    /* Contenedores de Gráficos */
-    div[data-testid="stPlotlyChart"], .stMatplotlibChart {{
-        background: {card_bg} !important;
-        border-radius: 20px !important;
-        padding: 1px !important;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.2) !important;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    div[data-testid="stMetricValue"] {{
+        font-size: 1.8rem !important;
+        font-weight: 700 !important;
+        color: #22D3EE !important;
     }}
-    
-    /* Contenedores de Gráficos */
-    div[data-testid="stPlotlyChart"], .stMatplotlibChart {{
-        background: {card_bg} !important;
-        border-radius: 20px !important;
-        padding: 1px !important;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.2) !important;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-    }}
-  
 
-    /* Sidebar Refinado */
+    div[data-testid="stMetricLabel"] {{
+        color: #E2E8F0 !important;
+    }}
+
+    /* Charts */
+    div[data-testid="stPlotlyChart"], .stMatplotlibChart {{
+        background: {card_bg} !important;
+        border-radius: 18px !important;
+        padding: 10px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+    }}
+
+    /* Tabs */
+    .stTabs [data-baseweb="tab-list"] {{
+        gap: 0.4rem;
+    }}
+
+    .stTabs [data-baseweb="tab"] {{
+        background: rgba(148, 163, 184, 0.10);
+        color: #E2E8F0;
+        border-radius: 10px;
+        padding: 0.6rem 1rem;
+    }}
+
+    .stTabs [aria-selected="true"] {{
+        background: rgba(34, 211, 238, 0.22) !important;
+        color: #FFFFFF !important;
+    }}
+
+    /* Buttons */
+    .stButton>button {{
+        background: linear-gradient(135deg, #06B6D4, #3B82F6);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 0.55rem 1rem;
+        font-weight: 600;
+    }}
+
+    .stButton>button:hover {{
+        background: linear-gradient(135deg, #0891B2, #2563EB);
+        color: white;
+    }}
+
+    /* Sidebar */
     section[data-testid="stSidebar"] {{
         background: rgba(1,1,1,0.1) !important;
         backdrop-filter: blur(5px);    
     }}
+
     section[data-testid="stSidebar"] div[data-baseweb="select"] > div {{
-    background: rgba(255, 255, 255, 0.08) !important;
-    border-radius: 12px !important;
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
     }}
-    /* 🎯 Tags seleccionados en multiselect */
+
     section[data-testid="stSidebar"] [data-baseweb="tag"] {{
-    background-color: rgba(0, 180, 216, 0.35) !important;
-    color: white !important;
-    border-radius: 8px !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        background-color: rgba(0, 180, 216, 0.35) !important;
+        color: white !important;
+        border-radius: 8px !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
     }}
-    
-    
-    .stMarkdown p {{ color: {text_color}; }}
+
+    /* Texto */
+    .stMarkdown p {{
+        color: {text_color};
+    }}
+
     </style>
     """, unsafe_allow_html=True)
 
@@ -173,8 +243,8 @@ with tab1:
     # Métricas clave en la parte superior
     m1, m2, m3 = st.columns(3)
     m1.metric("Total Observaciones", len(filtered_df))
-    m2.metric("Especies Seleccionadas", len(species))
-    m3.metric("Islas Cubiertas", len(island))
+    m2.metric("Especies", len(species))
+    m3.metric("Islas", len(island))
 
     st.spacer = st.markdown("<br>", unsafe_allow_html=True)
     
@@ -261,7 +331,7 @@ with tab2:
     
     st.pyplot(fig)
     
-    st.markdown("### 📊 Resumen estadístico")
+    st.markdown("### Resumen estadístico")
     c1, c2, c3 = st.columns(3)
     c1.metric("Media", round(filtered_df[variable].mean(), 2))
     c2.metric("Mediana", round(filtered_df[variable].median(), 2))
